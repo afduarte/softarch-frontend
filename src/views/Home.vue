@@ -1,18 +1,27 @@
-<template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+<template lang="pug">
+  .home
+    h1 Welcome {{username}}
+    .orders
+      .order(v-for="o in orders")
+        p {{o.ID}}
+      p {{this.priceMap}}
+
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue';
 
 export default {
   name: 'home',
-  components: {
-    HelloWorld,
+  data() {
+    return {
+      username: '',
+      priceMap: {},
+      orders: [],
+    };
+  },
+  async mounted() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    this.username = user.Name;
   },
 };
 </script>

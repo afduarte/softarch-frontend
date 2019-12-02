@@ -1,12 +1,44 @@
-<template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+<template lang="pug">
+  #app
+    template(v-if="this.token")
+      h1 DE-Store
+      #nav
+        router-link(to="/") Home
+        router-link(to="/order") Order
+      router-view
+    template(v-else)
+      .login
+        h3 Please log in to proceed
+        p Username
+        input(type="text" v-model="username")
+        p Password
+        input(type="password" v-model="password")
+        button(@click="login") Login
 </template>
+<script>
+import { api } from '@/util';
+
+export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+      token: null,
+    };
+  },
+  methods: {
+    async login() {
+      const { data } = await api.post('/auth/login', `user=${this.username}&pass=${this.password}`);
+      this.token = data.User.Token;
+      localStorage.setItem('token', this.token);
+      localStorage.setItem('user', JSON.stringify(data.User));
+    },
+  },
+  mounted() {
+    this.token = localStorage.getItem('token');
+  },
+};
+</script>
 
 <style lang="scss">
 #app {
