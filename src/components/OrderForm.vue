@@ -1,28 +1,29 @@
 <template lang="pug">
   #order-form
-    .address
-      p Delivery Address
+    .address.row
+      p Delivery Address:
       input(type="text", v-model="address")
       template(v-if="this.address !== ''")
         p There is a delivery charge of £5
-    .loyalty-card
-      p Loyalty Card
+    .loyalty-card.row
+      p Loyalty Card:
       input(type="text", v-model="customer")
       template(v-if="this.customer.length === 6")
-        p Use Points
+        p Use Points:
         input(type="text", v-model="points")
-    .add-product
-      p Product ID
+    .add-product.row
+      p Product ID:
       select(v-model="prodID")
         option(v-for="p in products", :value="p.ID") {{p.Name}}
-      p Quantity
+      p Quantity:
       input(type="number", v-model="quantity")
       button(@click="addProduct") Add Product
     .cart
-      .product(v-for="(p,i) in cart")
+      p.left Cart:
+      .product.row(v-for="(p,i) in cart")
         p Name: {{priceMap[p.ID].Name}}
         p QTY.: {{p.Quantity}}
-    .submit
+    .submit.left
       button(@click="calculate") Calculate
       button(v-if="Object.keys(cart).length", @click="submit") Create Order
     hr
@@ -90,3 +91,17 @@ export default {
   },
 };
 </script>
+<style lang="scss" scoped>
+.row{
+  margin: 10px 0;
+
+  display:flex;
+  flex-direction: row;
+  p {
+    margin: 5px;
+  }
+}
+.left {
+  text-align: left;
+}
+</style>

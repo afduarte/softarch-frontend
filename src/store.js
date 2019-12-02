@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { api, timer } from '@/util';
 import Bus from '@/bus';
 
-export default new Vue({
+export const store = new Vue({
   data() {
     return {
       token: null,
@@ -84,7 +84,12 @@ export default new Vue({
       if (this.isLoggedIn) {
         await this.fetchData();
       }
+      setInterval(async () => {
+        await this.fetchData();
+      }, 3000);
     },
   },
 
 });
+
+export default store;

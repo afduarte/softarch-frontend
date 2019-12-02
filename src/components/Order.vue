@@ -5,34 +5,24 @@
       p User
       p Status
       p Delivery
+      p Time
+      p Products
+      p Price
+      p Discount
+      p Discount Reasons
     template(v-else)
-      p {{order.Id}}
+      p {{order.ID}}
       p {{username(order.UserID)}}
       p {{order.OrderStatus}}
       p {{order.DeliveryAddress || 'No delivery'}}
+      p {{new Date(order.Timestamp).toLocaleDateString('en-GB',dateOpts)}}
+      .cart
+        p(v-for="c in prodStrings(order)") {{c}}
+      p {{order.Total}}
+      p {{order.Discount}}
+      p {{order.DiscountReasons}}
 </template>
 <script>
-/**
- * {
-  "ID": "022367b7-4d3d-4013-b207-80da8a21ebb1",
-  "UserID": "Antero Duarte",
-  "CustomerID": "",
-  "DeliveryAddress": "",
-  "OrderStatus": "processed",
-  "Timestamp": "2019-12-02T12:33:08.874475801Z",
-  "Cart": {
-    "0002": {
-      "ID": "0002",
-      "Quantity": 9
-    }
-  },
-  "Total": 49.050000000000004,
-  "Discount": 16.35,
-  "DiscountReasons": [
-    "3 x 3 for 2"
-  ]
-}
- */
 import Store from '@/store';
 
 export default {
@@ -41,21 +31,40 @@ export default {
     order: { type: Object },
     header: { type: Boolean },
   },
+  data() {
+    return {
+      dateOpts: {
+        year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric',
+      },
+    };
+  },
   computed: {
     username() {
       return (id) => {
-        if (this.header || !Store.users || !Store.users[id]) {
-          return '';
+        if (this.header || !Store.userMap || !Store.userMap[id]) {
+          return id;
         }
-        return Store.users[id].Name;
+        return Store.userMap[id].Name;
       };
     },
+    prodStrings() {
+      return order => Object.values(order.Cart).map(c => ({
+        ...c,
+        Name: Store.priceMap[c.ID].Name,
+        Price: Store.priceMap[c.ID].Price,
+      })).map(c => `${c.Quantity} x ${c.Name} (${c.Price})`);
+    },
   },
+
 };
 </script>
 <style lang="scss" scoped>
 .order {
   display: flex;
   flex-direction: row;
+  p {
+    padding: 5px;
+    border-left: 1px solid #000;
+  }
 }
 </style>
