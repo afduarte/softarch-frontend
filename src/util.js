@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import Bus from '@/bus';
 // create an axios instance
 const service = axios.create({
   baseURL: '/api', // api base_url
@@ -7,23 +7,29 @@ const service = axios.create({
 });
 
 // request interceptor
-service.interceptors.request.use(
-  (config) => {
-    // Do something before request is sent
-    // if (user.isLoggedIn()) {
-    //   const token = user.token;
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // eslint-disable-line no-param-reassign
-    }
-    return config;
-  },
+service.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`; // eslint-disable-line no-param-reassign
+  } else {
+    Promise.reject(new Error('No token'));
+  }
+  return config;
+},
+error => Promise.reject(error));
+
+service.interceptors.response.use(response => response,
   (error) => {
-    // Do something with request error
-    Promise.reject(error);
-  },
-);
+    if (error.response && error.response.status === 401) {
+      Bus.$emit('logout');
+    }
+    return Promise.reject(error);
+  });
 
 export const api = service;
+
+export const timer = time => new Promise((resolve) => {
+  setTimeout(() => resolve(), time);
+});
 
 export default { api };

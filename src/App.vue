@@ -1,10 +1,13 @@
 <template lang="pug">
   #app
-    template(v-if="this.token")
+    template(v-if="isLoggedIn")
       h1 DE-Store
       #nav
         router-link(to="/") Home
         router-link(to="/order") Order
+        template(v-if="isLoggedIn && user.Role ==='ManagerRole'")
+          router-link(to="/set-price") Set Prices
+        a(href="#", @click.prevent="logout") Logout
       router-view
     template(v-else)
       .login
@@ -16,32 +19,40 @@
         button(@click="login") Login
 </template>
 <script>
-import { api } from '@/util';
+import Store from '@/store';
 
 export default {
   data() {
     return {
       username: '',
       password: '',
-      token: null,
     };
+  },
+  computed: {
+    isLoggedIn() {
+      return Store.isLoggedIn;
+    },
+    user() {
+      return Store.user;
+    },
   },
   methods: {
     async login() {
-      const { data } = await api.post('/auth/login', `user=${this.username}&pass=${this.password}`);
-      this.token = data.User.Token;
-      localStorage.setItem('token', this.token);
-      localStorage.setItem('user', JSON.stringify(data.User));
+      await Store.login(this.username, this.password);
+    },
+    logout() {
+      Store.logout();
     },
   },
   mounted() {
-    this.token = localStorage.getItem('token');
+    Store.init();
   },
 };
 </script>
 
 <style lang="scss">
 #app {
+  padding: 0 10px;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -51,8 +62,8 @@ export default {
 
 #nav {
   padding: 30px;
-
   a {
+    margin: 0 5px;
     font-weight: bold;
     color: #2c3e50;
 

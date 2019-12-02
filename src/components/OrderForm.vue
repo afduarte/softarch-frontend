@@ -23,18 +23,26 @@
         p Name: {{priceMap[p.ID].Name}}
         p QTY.: {{p.Quantity}}
     .submit
-      button(@click="submit") Submit
+      button(@click="calculate") Calculate
+      button(v-if="Object.keys(cart).length", @click="submit") Create Order
+    hr
+    template(v-if="order")
+      p Total: {{order.Total}}
+      p Discount: {{order.Discount}}
+      .reasons
+        p Discount Reasons:
+        p(v-for="r in order.DiscountReasons") {{r}}
 
 
 </template>
 <script>
-import { api } from '@/util';
+/**
+ *
+ */
+import Store from '@/store';
 
 export default {
   name: 'order-form',
-  props: {
-    priceMap: { type: Object },
-  },
   data() {
     return {
       customer: '',
@@ -43,11 +51,24 @@ export default {
       prodID: '',
       quantity: '',
       cart: {},
+      order: null,
     };
   },
   computed: {
+    priceMap() {
+      return Store.priceMap;
+    },
+    inventoryMap() {
+      return Store.inventoryMap;
+    },
     products() {
-      return Object.values(this.priceMap).filter(p => p.ID !== '9999');
+      if (!this.inventoryMap || !this.priceMap) return [];
+      return Object.values(this.priceMap)
+        .filter(p => p.ID !== '9999' && this.inventoryMap[p.ID])
+        .map(p => ({
+          ...p,
+          Stock: this.inventoryMap[p.ID].Quantity,
+        }));
     },
   },
   methods: {
@@ -57,35 +78,15 @@ export default {
       this.quantity = '';
     },
     async submit() {
-      const form = {
-        CustomerID: this.customer,
-        UsePoints: Number(this.points),
-        DeliveryAddress: this.address,
-        Cart: this.cart,
-      };
-      await api.post('/order/new', form, { headers: { 'Content-Type': 'application/json' } });
+      await Store.submit(this.customer, this.address, this.cart, this.points);
       this.customer = '';
       this.address = '';
       this.cart = {};
+      this.order = null;
+    },
+    async calculate() {
+      this.order = await Store.calculate(this.cart);
     },
   },
 };
-
-/**
- * {
-    "CustomerID": "000002",
-    "UsePoints": 500,
-    "DeliveryAddress": "EH164FL",
-    "Cart": {
-        "0001": {
-            "ID": "0001",
-            "Quantity": 1
-        },
-        "0003": {
-            "ID": "0003",
-            "Quantity": 6
-        }
-    }
-}
- */
 </script>
