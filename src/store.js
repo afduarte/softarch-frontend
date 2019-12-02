@@ -85,7 +85,9 @@ export const store = new Vue({
         await this.fetchData();
       }
       setInterval(async () => {
-        await this.fetchData();
+        if (this.isLoggedIn) {
+          await this.fetchData();
+        }
       }, 3000);
     },
   },
